@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Espace Présentateur</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 900px; margin: auto; }
+        .etape { padding: 20px; background-color: #f9f9f9; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; }
+        textarea { width: 100%; padding: 10px; font-size: 16px; margin-bottom: 10px; box-sizing: border-box; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background-color: #28a745; color: white; border: none; border-radius: 5px; }
+        button:hover { background-color: #218838; }
+        .code-en-valeur { font-size: 24px; color: #d9534f; font-weight: bold; padding: 5px 10px; background: #fff; border: 2px dashed #d9534f; }
+        .grille-participants { display: flex; flex-wrap: wrap; gap: 20px; }
+        .carte-participant { background-color: #f4f4f4; padding: 15px; border-radius: 5px; border-top: 5px solid #28a745; width: 100%; box-sizing: border-box; }
+        .message { background-color: white; padding: 10px; margin-bottom: 10px; border-radius: 4px; border-left: 3px solid #007BFF; }
+    </style>
+</head>
+<body>
+
+    <div id="zone-creation" class="etape">
+        <h2>Créer une nouvelle session</h2>
+        <p>Saisissez la question que vous souhaitez poser à votre audience :</p>
+        <textarea id="champ-question" rows="4" placeholder="Ex: Que pensez-vous du nouveau design ?"></textarea>
+        <button id="bouton-creer">Générer la session</button>
+    </div>
+
+    <div id="zone-dashboard" style="display: none;">
+        <div class="etape">
+            <h2>Demandez aux participants de rejoindre la session : <span id="affichage-code" class="code-en-valeur"></span></h2>
+            <p><strong>Question posée :</strong> <span id="affichage-question-posee"></span></p>
+        </div>
+
+        <h3>Réponses reçues</h3>
+        <div id="liste-reponses" class="grille-participants">
+            <p>En attente de participants...</p>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        // Clic sur "Générer la session"
+        document.getElementById('bouton-creer').addEventListener('click', () => {
+            const question = document.getElementById('champ-question').value.trim();
+            if (question !== "") {
+                socket.emit('creer_session', question);
+                document.getElementById('affichage-question-posee').innerText = question;
+            } else {
+                alert("Veuillez saisir une question.");
+            }
+        });
+
+        // Quand le serveur confirme la création et renvoie le code
+        socket.on('session_creee', (codeSession) => {
+            document.getElementById('zone-creation').style.display = "none";
+            document.getElementById('zone-dashboard').style.display = "block";
+            document.getElementById('affichage-code').innerText = codeSession;
+        });
+
+        // Affichage dynamique des réponses (Même logique qu'avant)
+        socket.on('mise_a_jour_reponses', (reponsesParParticipant) => {
+            const conteneur = document.getElementById('liste-reponses');
+            conteneur.innerHTML = ""; 
+
+            const noms = Object.keys(reponsesParParticipant);
+            if (noms.length === 0) {
+                conteneur.innerHTML = "<p>En attente de participants...</p>";
+                return;
+            }
+
+            noms.forEach(nom => {
+                const carte = document.createElement('div');
+                carte.className = 'carte-participant';
+                carte.innerHTML = `<h3>${nom}</h3>`;
+                
+                reponsesParParticipant[nom].forEach(texteMsg => {
+                    const divMessage = document.createElement('div');
+                    divMessage.className = 'message';
+                    divMessage.innerHTML = texteMsg.replace(/\n/g, '<br>');
+                    carte.appendChild(divMessage);
+                });
+                conteneur.appendChild(carte);
+            });
+        });
+    </script>
+</body>
+</html>

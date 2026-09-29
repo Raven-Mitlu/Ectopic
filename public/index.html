@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Accueil - Application Interactive</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 50px 20px; 
+            max-width: 600px; 
+            margin: auto; 
+            text-align: center;
+            background-color: #f4f4f9;
+        }
+        .conteneur { 
+            background-color: white; 
+            padding: 40px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+        }
+        h1 { color: #333; margin-bottom: 10px; }
+        p { color: #666; margin-bottom: 30px; font-size: 18px; }
+        .choix-boutons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        a.bouton { 
+            display: inline-block;
+            padding: 15px 20px; 
+            font-size: 18px; 
+            text-decoration: none;
+            color: white; 
+            border-radius: 8px; 
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        a.bouton:hover {
+            transform: scale(1.02);
+        }
+        .btn-presentateur { background-color: #28a745; }
+        .btn-presentateur:hover { background-color: #218838; }
+        
+        .btn-participant { background-color: #007BFF; }
+        .btn-participant:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+
+    <div class="conteneur">
+        <h1>Bienvenue !</h1>
+        <p>Sélectionnez votre rôle pour continuer :</p>
+        
+        <div class="choix-boutons">
+            <a href="presentateur.html" class="bouton btn-presentateur">
+                👨‍🏫 Je suis le Présentateur
+            </a>
+            
+            <a href="participant.html" class="bouton btn-participant">
+                🙋‍♂️ Je suis un Participant
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>

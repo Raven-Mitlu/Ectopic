@@ -1,0 +1,97 @@
+ <!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Espace Participant</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+        input[type="text"], textarea { width: 100%; padding: 10px; font-size: 16px; margin-bottom: 10px; box-sizing: border-box; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background-color: #007BFF; color: white; border: none; border-radius: 5px; }
+        button:hover { background-color: #0056b3; }
+        .etape { padding: 20px; background-color: #f9f9f9; border-radius: 8px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+
+    <div id="zone-identification" class="etape">
+        <h2>Rejoindre une session</h2>
+        <p>Veuillez entrer le code fourni par le présentateur et votre nom :</p>
+        
+        <label>Code de session :</label>
+        <input type="text" id="champ-session" placeholder="Ex: 1234" maxlength="4">
+        
+        <label>Votre nom :</label>
+        <input type="text" id="champ-nom" placeholder="Votre nom ou pseudo...">
+        
+        <button id="bouton-rejoindre">Rejoindre</button>
+    </div>
+
+    <div id="zone-reponse" class="etape" style="display: none;">
+        <h3>Question de la session :</h3>
+        <h2 id="affichage-question" style="color: #007BFF;">Chargement...</h2>
+        <hr>
+        <p>Connecté en tant que : <strong id="affichage-nom"></strong></p>
+        
+        <textarea id="champ-reponse" rows="10" placeholder="Écrivez votre réponse ici..."></textarea>
+        <br>
+        <button id="bouton-envoyer">Envoyer la réponse</button>
+        <p id="message-confirmation" style="color: green; display: none;">Réponse envoyée !</p>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let infosUtilisateur = { nom: "", codeSession: "" };
+
+        // Clic sur "Rejoindre"
+        document.getElementById('bouton-rejoindre').addEventListener('click', () => {
+            const sessionSaisie = document.getElementById('champ-session').value.trim();
+            const nomSaisi = document.getElementById('champ-nom').value.trim();
+            
+            if (sessionSaisie !== "" && nomSaisi !== "") {
+                // On demande au serveur de rejoindre cette session
+                socket.emit('rejoindre_session', { codeSession: sessionSaisie, nom: nomSaisi }, (reponseServeur) => {
+                    
+                    if (reponseServeur.succes) {
+                        // C'est bon, la session existe
+                        infosUtilisateur.nom = nomSaisi;
+                        infosUtilisateur.codeSession = sessionSaisie;
+                        
+                        document.getElementById('zone-identification').style.display = "none";
+                        document.getElementById('zone-reponse').style.display = "block";
+                        document.getElementById('affichage-nom').innerText = nomSaisi;
+                    } else {
+                        // Le code est faux ou la session n'existe plus
+                        alert(reponseServeur.message);
+                    }
+                });
+            } else {
+                alert("Veuillez remplir les deux champs.");
+            }
+        });
+
+        // Réception de la question (déclenché juste après avoir rejoint avec succès)
+        socket.on('question', (question) => {
+            document.getElementById('affichage-question').innerText = question;
+        });
+
+        // Envoi de la réponse
+        document.getElementById('bouton-envoyer').addEventListener('click', () => {
+            const texte = document.getElementById('champ-reponse').value;
+            if (texte.trim() !== "") {
+                
+                // On envoie le texte, le nom ET le code de la session
+                socket.emit('nouvelle_reponse', {
+                    codeSession: infosUtilisateur.codeSession,
+                    nom: infosUtilisateur.nom,
+                    texte: texte
+                });
+                
+                document.getElementById('champ-reponse').value = "";
+                document.getElementById('message-confirmation').style.display = "block";
+                setTimeout(() => document.getElementById('message-confirmation').style.display = "none", 3000);
+            }
+        });
+    </script>
+</body>
+</html>

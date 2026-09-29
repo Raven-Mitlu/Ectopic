@@ -1,0 +1,2 @@
+Ectopic est un petit service web qui permet a un presentateur de creer un espace de reponse.
+Les participant ce connectent a la "room" pour repondre au sujet.
